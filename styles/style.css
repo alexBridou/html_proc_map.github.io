@@ -1,0 +1,18 @@
+.canvas {
+    background-color: beige;
+}
+
+.pixel {
+    background-color: red;
+}
+
+.sideBar {
+    background-color: rgb(212, 40, 40);
+    width: 120;
+    height: 1080px;
+}
+
+body {
+    display: flex;
+    flex-direction: row;
+}
