@@ -22,7 +22,7 @@ function initApp() {
 
 
 function createFirstChunck() {
-    const filledChunck = fillChunck(createEmptyChunck())
+    const filledChunck = fillFirstChunck(createEmptyChunck())
     data.chuncks.push(filledChunck)
     drawElement(data.chuncks.length - 1);
 }
@@ -49,6 +49,62 @@ function prepareChunck(emptyChunck, previousChunck, direction) {
     }
     return emptyChunck
 }
+
+function interpolateLine(chunck, lineIndex) {
+    const delta = 1 / chunck.length;
+    let line = chunck[lineIndex];
+    const minValue = line[0];
+    const maxValue = line[line.length - 1];
+    const diff = maxValue - minValue;
+    let interpolationValue;
+    for (let i = 0; i < line.length; i++) {
+        if (line[i] === "") {
+            interpolationValue = (delta * i) * diff;
+            line[i] = Math.round(minValue + interpolationValue);
+        }
+    }
+    return chunck;
+}
+
+function interpolateColumn(chunck, columnIndex) {
+    const delta = 1 / chunck.length;
+    const minValue = chunck[0][columnIndex];
+    const maxValue = chunck[chunck.length - 1][columnIndex];
+    const diff = maxValue - minValue;
+    for (let i = 0; i < chunck.length; i++) {
+        if (chunck[i][columnIndex] === "") {
+            interpolationValue = (delta * i) * diff;
+            chunck[i][columnIndex] = Math.round(minValue + interpolationValue);
+        }
+    }
+    return chunck;
+}
+
+function fillFirstChunck(chunck) {
+    chunck[0][0] = getRandomValue();;
+    chunck[0][chunck.length - 1] = getRandomValue();;
+    chunck[chunck.length - 1][0] = getRandomValue();;
+    chunck[chunck.length - 1][chunck.length - 1] = getRandomValue();
+    chunck = interpolateLine(chunck, 0)
+    const delta = 1 / chunck.length;
+    chunck = interpolateLine(chunck, chunck.length - 1)
+    chunck = interpolateColumn(chunck, 0)
+    chunck = interpolateColumn(chunck, chunck.length - 1)
+    console.log(chunck)
+    for (let i = 0; i < chunck.length; i++) {
+        if (chunck[i][1] === "") {
+            chunck = interpolateLine(chunck, i);
+        }
+    } 
+    return chunck;
+}
+
+
+
+function getRandomValue() {
+    return Math.floor(Math.random() * 10);
+}
+
 
 function fillChunck(chunck, options = {}) {
     let r = Math.round(Math.random() * 10);
@@ -100,7 +156,7 @@ function getValue(previousValue, previousLinePixelValue) {
     let r = Math.round(Math.random() * 100);
     let ref;
     // if (previousValue !== '' && previousLinePixelValue !== '') {
-        if (isFound(previousValue) && isFound(previousLinePixelValue)) {
+    if (isFound(previousValue) && isFound(previousLinePixelValue)) {
         ref = r >= 50 ? previousValue : previousLinePixelValue;
     } else if (!isFound(previousValue)) {
         ref = previousLinePixelValue
@@ -146,27 +202,27 @@ function getPixelXPosition(pixelIndex, chunckIndex) {
 function getColor(value) {
     switch (value) {
         case 0:
-            return "(70, 190, 246)";
+            return "(4, 51, 89)";
         case 1:
-            return "(91, 178, 100)";
+            return "(15, 87, 145)";
         case 2:
-            return "(93, 175, 28)";
+            return "(43, 126, 194)";
         case 3:
-            return "(239, 230, 29)";
+            return "(71, 162, 237)";
         case 4:
-            return "(243, 174, 19)";
+            return "(189, 138, 0)";
         case 5:
-            return "(228, 101, 8)";
+            return "(85, 181, 103)";
         case 6:
-            return "(204, 45, 24)";
+            return "(57, 145, 73)";
         case 7:
-            return "(176, 13, 45)";
+            return "(37, 115, 51)";
         case 8:
-            return "(122, 125, 130)"
+            return "(21, 99, 35)"
         case 9:
             return "(0, 0, 0)";
         default:
-            return "(70, 190, 246)";
+            return "(4, 51, 89)";
     }
 }
 // let div = document.createElement('div')
