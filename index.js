@@ -92,12 +92,17 @@ function fillChunck(chunck, options = {}) {
     return chunck;
 }
 
+function isFound(value) {
+    return data.possibleValues.find(i => i === value)
+}
+
 function getValue(previousValue, previousLinePixelValue) {
     let r = Math.round(Math.random() * 100);
     let ref;
-    if (previousValue >= 0 && previousLinePixelValue) {
+    // if (previousValue !== '' && previousLinePixelValue !== '') {
+        if (isFound(previousValue) && isFound(previousLinePixelValue)) {
         ref = r >= 50 ? previousValue : previousLinePixelValue;
-    } else if (!previousValue) {
+    } else if (!isFound(previousValue)) {
         ref = previousLinePixelValue
     } else {
         ref = previousValue;
@@ -105,9 +110,9 @@ function getValue(previousValue, previousLinePixelValue) {
     if (r <= 90) {
         return ref;
     } else if (r <= 95) {
-        return ref === 9 ? ref : ref + 1;
+        return ref >= 9 ? ref : ref + 1;
     } else {
-        return ref === 0 ? ref : ref - 1;
+        return ref <= 0 ? ref : ref - 1;
     }
 }
 
