@@ -10,7 +10,7 @@ const data = {
     height: 1
 }
 
-const canevas = document.getElementById("canvas"); // dans votre HTML, cet élément apparaît comme <canvas id="monCanevas"></canvas>
+const canevas = document.getElementById("canvas");
 const ctx = canevas.getContext("2d");
 
 
@@ -118,72 +118,6 @@ function fillChunck(chunck, options = {}) {
     }
 }
 
-// function fillChunck(chunck, options = {}) {
-//     let r = Math.round(Math.random() * 10);
-
-//     if (!options.action) {
-//         if (r <= 7) {
-//             r = statics.DOMINANT_TEXTURE
-//         }
-//         chunck[0][0] = r;
-//         for (let i = 0; i < chunck.length; i++) {
-//             let line = chunck[i];
-//             for (let j = 0; j < line.length; j++) {
-//                 if (i === 0) {
-//                     let previousValue = line[j - 1]
-//                     if (!line[j] && previousValue) {
-//                         line[j] = getValue(previousValue)
-//                     }
-//                 } else {
-//                     let previousLinePixelValue = chunck[i - 1][j] || null
-//                     let previousValue = chunck[i][j - 1]
-//                     if (!line[j]) {
-//                         line[j] = getValue(previousValue, previousLinePixelValue)
-//                     }
-//                 }
-//             }
-//         }
-//     } else {
-//         for (let i = 0; i < chunck.length; i++) {
-//             let line = chunck[i];
-//             for (let j = 0; j < line.length; j++) {
-//                 if (!line[j]) {
-//                     let previousLinePixelValue = i === 0 ? null : chunck[i - 1][j]
-//                     let previousValue = chunck[i][j - 1]
-//                     line[j] = getValue(previousValue, previousLinePixelValue)
-//                 }
-//             }
-//         }
-
-//     }
-
-//     return chunck;
-// }
-
-function isFound(value) {
-    return data.possibleValues.find(i => i === value)
-}
-
-function getValue(previousValue, previousLinePixelValue) {
-    let r = Math.round(Math.random() * 100);
-    let ref;
-    // if (previousValue !== '' && previousLinePixelValue !== '') {
-    if (isFound(previousValue) && isFound(previousLinePixelValue)) {
-        ref = r >= 50 ? previousValue : previousLinePixelValue;
-    } else if (!isFound(previousValue)) {
-        ref = previousLinePixelValue
-    } else {
-        ref = previousValue;
-    }
-    if (r <= 90) {
-        return ref;
-    } else if (r <= 95) {
-        return ref >= 9 ? ref : ref + 1;
-    } else {
-        return ref <= 0 ? ref : ref - 1;
-    }
-}
-
 function createEmptyChunck() {
     let chunck = []
     for (let i = 0; i < statics.CHUNCK_SIZE / statics.PIXEL_SIZE; i++) {
@@ -201,8 +135,8 @@ function drawElement(index) {
     return currentChunck.map((line, lineIndex) => {
         return line.map((pix, pixIndex) => {
             const color = "rgb" + getColor(pix)
-            ctx.fillStyle = color; // définit la couleur de remplissage du rectangle
-            ctx.fillRect(getPixelXPosition(pixIndex, index), lineIndex * statics.PIXEL_SIZE, statics.PIXEL_SIZE, statics.PIXEL_SIZE); // dessine le rectangle à la position 10, 10 d'une largeur de 55 et d'une hauteur de 50
+            ctx.fillStyle = color;
+            ctx.fillRect(getPixelXPosition(pixIndex, index), lineIndex * statics.PIXEL_SIZE, statics.PIXEL_SIZE, statics.PIXEL_SIZE);
         })
     })
 }
