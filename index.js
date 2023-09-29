@@ -1,7 +1,6 @@
 const statics = {
     CHUNCK_SIZE: 300,
-    PIXEL_SIZE: 10,
-    DOMINANT_TEXTURE: 1
+    PIXEL_SIZE: 10
 }
 const data = {
     possibleValues: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
