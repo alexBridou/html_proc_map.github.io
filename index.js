@@ -30,7 +30,7 @@ function createFirstChunck() {
 function createNewChuncks(options = {}) {
     const expectedLength = data.width * data.height;
     for (let i = 0; i < expectedLength - data.chuncks.length; i++) {
-        let previousChunck = options.direction === "width" ? data.chuncks[i] : data.chuncks[i]
+        let previousChunck = options.direction === "width" ? data.chuncks[data.chuncks.length - 1] : data.chuncks[data.chuncks.length - 1]
         const preparedChunck = prepareChunck(createEmptyChunck(), previousChunck, options.direction)
         const filledChunck = fillChunck(preparedChunck, {
             action: "add"
@@ -81,12 +81,11 @@ function interpolateColumn(chunck, columnIndex) {
 }
 
 function fillFirstChunck(chunck) {
-    chunck[0][0] = getRandomValue();;
-    chunck[0][chunck.length - 1] = getRandomValue();;
-    chunck[chunck.length - 1][0] = getRandomValue();;
+    chunck[0][0] = getRandomValue();
+    chunck[0][chunck.length - 1] = getRandomValue();
+    chunck[chunck.length - 1][0] = getRandomValue();
     chunck[chunck.length - 1][chunck.length - 1] = getRandomValue();
     chunck = interpolateLine(chunck, 0)
-    const delta = 1 / chunck.length;
     chunck = interpolateLine(chunck, chunck.length - 1)
     chunck = interpolateColumn(chunck, 0)
     chunck = interpolateColumn(chunck, chunck.length - 1)
@@ -95,7 +94,7 @@ function fillFirstChunck(chunck) {
         if (chunck[i][1] === "") {
             chunck = interpolateLine(chunck, i);
         }
-    } 
+    }
     return chunck;
 }
 
@@ -105,48 +104,61 @@ function getRandomValue() {
     return Math.floor(Math.random() * 10);
 }
 
-
 function fillChunck(chunck, options = {}) {
-    let r = Math.round(Math.random() * 10);
-
-    if (!options.action) {
-        if (r <= 7) {
-            r = statics.DOMINANT_TEXTURE
-        }
-        chunck[0][0] = r;
+    if (options.action === "add") {
+        chunck[0][chunck.length - 1] = getRandomValue();
+        chunck[chunck.length - 1][chunck.length - 1] = getRandomValue();
+        chunck = interpolateColumn(chunck, chunck.length - 1);
         for (let i = 0; i < chunck.length; i++) {
-            let line = chunck[i];
-            for (let j = 0; j < line.length; j++) {
-                if (i === 0) {
-                    let previousValue = line[j - 1]
-                    if (!line[j] && previousValue) {
-                        line[j] = getValue(previousValue)
-                    }
-                } else {
-                    let previousLinePixelValue = chunck[i - 1][j] || null
-                    let previousValue = chunck[i][j - 1]
-                    if (!line[j]) {
-                        line[j] = getValue(previousValue, previousLinePixelValue)
-                    }
-                }
+            if (chunck[i][1] === "") {
+                chunck = interpolateLine(chunck, i);
             }
         }
-    } else {
-        for (let i = 0; i < chunck.length; i++) {
-            let line = chunck[i];
-            for (let j = 0; j < line.length; j++) {
-                if (!line[j]) {
-                    let previousLinePixelValue = i === 0 ? null : chunck[i - 1][j]
-                    let previousValue = chunck[i][j - 1]
-                    line[j] = getValue(previousValue, previousLinePixelValue)
-                }
-            }
-        }
-
+        return chunck;
     }
-
-    return chunck;
 }
+
+// function fillChunck(chunck, options = {}) {
+//     let r = Math.round(Math.random() * 10);
+
+//     if (!options.action) {
+//         if (r <= 7) {
+//             r = statics.DOMINANT_TEXTURE
+//         }
+//         chunck[0][0] = r;
+//         for (let i = 0; i < chunck.length; i++) {
+//             let line = chunck[i];
+//             for (let j = 0; j < line.length; j++) {
+//                 if (i === 0) {
+//                     let previousValue = line[j - 1]
+//                     if (!line[j] && previousValue) {
+//                         line[j] = getValue(previousValue)
+//                     }
+//                 } else {
+//                     let previousLinePixelValue = chunck[i - 1][j] || null
+//                     let previousValue = chunck[i][j - 1]
+//                     if (!line[j]) {
+//                         line[j] = getValue(previousValue, previousLinePixelValue)
+//                     }
+//                 }
+//             }
+//         }
+//     } else {
+//         for (let i = 0; i < chunck.length; i++) {
+//             let line = chunck[i];
+//             for (let j = 0; j < line.length; j++) {
+//                 if (!line[j]) {
+//                     let previousLinePixelValue = i === 0 ? null : chunck[i - 1][j]
+//                     let previousValue = chunck[i][j - 1]
+//                     line[j] = getValue(previousValue, previousLinePixelValue)
+//                 }
+//             }
+//         }
+
+//     }
+
+//     return chunck;
+// }
 
 function isFound(value) {
     return data.possibleValues.find(i => i === value)
@@ -225,11 +237,6 @@ function getColor(value) {
             return "(4, 51, 89)";
     }
 }
-// let div = document.createElement('div')
-// div.classList.add('pixel')
-// div.style.width = statics.PIXEL_SIZE + "px"
-// div.style.height = statics.PIXEL_SIZE + "px"
-// canevas.appendChild(div)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////   WIDTH AND HEIGHT MANAGEMENT   //////////////////////////////////////////////////////
@@ -260,8 +267,10 @@ function updateWidth(newWidth) {
 }
 
 function updateHeight(newHeight) {
-    data.height = newHeight;
-    createNewChuncks({
-        direction: "height"
-    })
+    if (newHeight > data.height) {
+        data.height = newHeight;
+        createNewChuncks({
+            direction: "height"
+        })
+    }
 }
