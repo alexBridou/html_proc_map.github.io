@@ -4,7 +4,11 @@ const statics = {
 }
 const data = {
     possibleValues: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    chuncks: [],
+    chuncks: {
+        lines: [
+            []
+        ]
+    },
     width: 1,
     height: 1
 }
@@ -22,32 +26,68 @@ function initApp() {
 
 function createFirstChunck() {
     const filledChunck = fillFirstChunck(createEmptyChunck())
-    data.chuncks.push(filledChunck)
-    drawElement(data.chuncks.length - 1);
+    data.chuncks.lines[0].push(filledChunck)
+    drawElement(data.chuncks.lines.length - 1, data.chuncks.lines.length - 1);
 }
 
 function createNewChuncks(options = {}) {
-    const expectedLength = data.width * data.height;
-    for (let i = 0; i < expectedLength - data.chuncks.length; i++) {
-        let previousChunck = options.direction === "width" ? data.chuncks[data.chuncks.length - 1] : data.chuncks[data.chuncks.length - 1]
-        const preparedChunck = prepareChunck(createEmptyChunck(), previousChunck, options.direction)
-        const filledChunck = fillChunck(preparedChunck, {
-            action: "add"
-        })
-        data.chuncks.push(filledChunck)
-        drawElement(data.chuncks.length - 1)
+    let previousChunck = options.direction === "width" ? data.chuncks.lines[options.currentLine || 0][data.chuncks.lines[options.currentLine || 0].length - 1] : data.chuncks.lines[data.chuncks.lines.length - 1][0]
+    let previousHorizontalChunck =  options.direction === "width" || options.columnIndex ? data.chuncks.lines[options.currentLine || 0][data.chuncks.lines[options.currentLine || 0].length - 1] : [];
+    let previousVerticalChunck = options.direction === "height" || options.currentLine  ? data.chuncks.lines[options.currentLine ? options.currentLine - 1 : data.chuncks.lines.length - 1][options.columnIndex || 0] : [];
+    // const preparedChunck = prepareChunck(createEmptyChunck(), previousChunck, options.direction)
+    const preparedChunck = prepareChunck(createEmptyChunck(), previousHorizontalChunck, previousVerticalChunck, options.direction)
+    const filledChunck = fillChunck(preparedChunck, {
+        action: "add",
+        direction: options.direction
+    })
+    if (options.direction === "width") {
+        data.chuncks.lines[options.currentLine || 0].push(filledChunck)
+        drawElement(data.chuncks.lines[options.currentLine || 0].length - 1, options.currentLine || 0)
+    } else {
+        data.chuncks.lines.push([filledChunck])
+        drawElement(0, data.chuncks.lines.length - 1)
     }
     console.log(data)
 }
-
-function prepareChunck(emptyChunck, previousChunck, direction) {
-    if (direction === "width") {
+function prepareChunck(emptyChunck, previousHorizontalChunck, previousVerticalChunck, direction) {
+    if (previousHorizontalChunck.length && !previousVerticalChunck.length) {
         for (let i = 0; i < emptyChunck.length; i++) {
-            emptyChunck[i][0] = previousChunck[i][previousChunck.length - 1]
+            emptyChunck[i][0] = previousHorizontalChunck[i][previousHorizontalChunck.length - 1]
+        }
+    } else if (previousVerticalChunck.length && !previousHorizontalChunck.length) {
+        for (let i = 0; i < emptyChunck.length; i++) {
+            emptyChunck[0][i] = previousVerticalChunck[previousVerticalChunck.length - 1][i]
+        }
+    } else {
+        const previousLine = previousVerticalChunck[previousVerticalChunck.length - 1]
+        const previousLineFirstValue = previousLine[0]
+        const previousColumnLastValue = previousHorizontalChunck[0][previousHorizontalChunck[0].length -1]
+        if (previousColumnLastValue !== previousLineFirstValue) {
+
+        } else {
+            for (let i = 0; i < emptyChunck.length; i++) {
+                emptyChunck[i][0] = previousHorizontalChunck[i][previousHorizontalChunck.length - 1]
+            }   
+            for (let i = 0; i < emptyChunck.length; i++) {
+                emptyChunck[0][i] = previousVerticalChunck[previousVerticalChunck.length - 1][i]
+            }         
         }
     }
     return emptyChunck
 }
+
+// function prepareChunck(emptyChunck, previousChunck, direction) {
+//     if (direction === "width") {
+//         for (let i = 0; i < emptyChunck.length; i++) {
+//             emptyChunck[i][0] = previousChunck[i][previousChunck.length - 1]
+//         }
+//     } else {
+//         for (let i = 0; i < emptyChunck.length; i++) {
+//             emptyChunck[0][i] = previousChunck[previousChunck.length - 1][i]
+//         }
+//     }
+//     return emptyChunck
+// }
 
 function interpolateLine(chunck, lineIndex) {
     const delta = 1 / chunck.length;
@@ -104,9 +144,18 @@ function getRandomValue() {
 }
 
 function fillChunck(chunck, options = {}) {
-    if (options.action === "add") {
-        chunck[0][chunck.length - 1] = getRandomValue();
-        chunck[chunck.length - 1][chunck.length - 1] = getRandomValue();
+    chunck = getChunckCorners(chunck);
+    if (options.direction === "width") {
+        chunck = interpolateColumn(chunck, chunck.length - 1);
+        for (let i = 0; i < chunck.length; i++) {
+            if (chunck[i][1] === "") {
+                chunck = interpolateLine(chunck, i);
+            }
+        }
+        return chunck;
+    } else {
+        console.log(chunck)
+        chunck = interpolateColumn(chunck, 0);
         chunck = interpolateColumn(chunck, chunck.length - 1);
         for (let i = 0; i < chunck.length; i++) {
             if (chunck[i][1] === "") {
@@ -115,6 +164,22 @@ function fillChunck(chunck, options = {}) {
         }
         return chunck;
     }
+}
+
+function getChunckCorners(chunck) {
+    if (chunck[0][0] === "") {
+        chunck[0][0] = getRandomValue();
+    }
+    if (chunck[0][chunck.length - 1] === "") {
+        chunck[0][chunck.length - 10] = getRandomValue();
+    }
+    if (chunck[chunck.length - 1][0] === "") {
+        chunck[chunck.length - 1][0] = getRandomValue();
+    }
+    if (chunck[chunck.length - 1][chunck.length - 1] === "") {
+        chunck[chunck.length - 1][chunck.length - 1] = getRandomValue();
+    }
+    return chunck;
 }
 
 function createEmptyChunck() {
@@ -129,19 +194,23 @@ function createEmptyChunck() {
     return chunck;
 }
 
-function drawElement(index) {
-    const currentChunck = data.chuncks[index];
-    return currentChunck.map((line, lineIndex) => {
+function drawElement(chunckIndex, lineIndex) {
+    const currentChunck = data.chuncks.lines[lineIndex][chunckIndex];
+    return currentChunck.map((line, lineItemIndex) => {
         return line.map((pix, pixIndex) => {
             const color = "rgb" + getColor(pix)
             ctx.fillStyle = color;
-            ctx.fillRect(getPixelXPosition(pixIndex, index), lineIndex * statics.PIXEL_SIZE, statics.PIXEL_SIZE, statics.PIXEL_SIZE);
+            ctx.fillRect(getPixelXPosition(pixIndex, chunckIndex), getPixelYPosition(lineIndex, lineItemIndex), statics.PIXEL_SIZE, statics.PIXEL_SIZE);
         })
     })
 }
 
 function getPixelXPosition(pixelIndex, chunckIndex) {
     return pixelIndex * statics.PIXEL_SIZE + (chunckIndex * statics.CHUNCK_SIZE);
+}
+
+function getPixelYPosition(lineIndex, lineItemIndex) {
+    return (lineItemIndex * statics.PIXEL_SIZE) + (lineIndex * statics.CHUNCK_SIZE)
 }
 
 function getColor(value) {
@@ -195,7 +264,19 @@ function updateWidth(newWidth) {
         data.width = newWidth;
         createNewChuncks({
             direction: "width"
-        })
+        });
+        for (let i = 0; i < data.chuncks.lines.length; i++) {
+            if (data.chuncks.lines[i].length < data.width) {
+                const diff = data.width - data.chuncks.lines[i].length;
+                for (let j = 0; j < diff; j++) {
+                    createNewChuncks({
+                        direction: "width",
+                        currentLine: i,
+                        currentColumn: j
+                    });
+                }
+            }
+        }
     }
 }
 
@@ -204,6 +285,13 @@ function updateHeight(newHeight) {
         data.height = newHeight;
         createNewChuncks({
             direction: "height"
-        })
+        });
+        for (let i = 0; i < data.chuncks.lines[0].length - 1; i++) {
+            createNewChuncks({
+                direction: "width",
+                currentLine: data.chuncks.lines.length - 1,
+                columnIndex: i + 1
+            });
+        }
     }
 }
